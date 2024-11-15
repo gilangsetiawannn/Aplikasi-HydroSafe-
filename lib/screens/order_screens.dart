@@ -1,4 +1,3 @@
-// order_screens.dart
 import 'package:flutter/material.dart';
 
 class OrderScreen extends StatefulWidget {
@@ -23,6 +22,32 @@ class _OrderScreenState extends State<OrderScreen> {
     '1200 Liter': '200.000,00',
     '1300 Liter': '250.000,00',
   };
+
+  int _selectedIndex = 1; // Untuk menandakan posisi Order di BottomNavigationBar
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    switch (index) {
+      case 0:
+        Navigator.pushNamed(context, '/home');
+        break;
+      case 1:
+        // Halaman order, tidak perlu melakukan apa-apa
+        break;
+      case 2:
+        Navigator.pushNamed(context, '/payment');
+        break;
+      case 3:
+        Navigator.pushNamed(context, '/order-history');
+        break;
+      case 4:
+        Navigator.pushNamed(context, '/profile');
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,17 +133,8 @@ class _OrderScreenState extends State<OrderScreen> {
             ),
             SizedBox(height: 16),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.end, // Mengatur agar tombol "Pesan" berada di sebelah kanan
               children: [
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/home');
-                  },
-                  child: Text('Kembali'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                  ),
-                ),
                 ElevatedButton(
                   onPressed: () {
                     if (nameController.text.isEmpty ||
@@ -149,7 +165,7 @@ class _OrderScreenState extends State<OrderScreen> {
                     widget.onOrderPlaced(
                       nameController.text,
                       addressController.text,
-                      selectedQuantity!, // Pastikan nilai ini tidak null
+                      selectedQuantity!,
                       phoneController.text,
                       selectedDate!,
                       selectedPrice!,
@@ -159,10 +175,10 @@ class _OrderScreenState extends State<OrderScreen> {
                       'name': nameController.text,
                       'address': addressController.text,
                       'phone': phoneController.text,
-                      'quantity': selectedQuantity!, // Pastikan mengirim selectedQuantity
+                      'quantity': selectedQuantity!,
                       'orderDate': selectedDate!,
                       'price': selectedPrice!,
-});
+                    });
                   },
                   child: Text('Pesan'),
                   style: ElevatedButton.styleFrom(
@@ -173,6 +189,19 @@ class _OrderScreenState extends State<OrderScreen> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Order'),
+          BottomNavigationBarItem(icon: Icon(Icons.payment), label: 'Payment'),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Order History'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: const Color.fromARGB(255, 59, 117, 211),
+        onTap: _onItemTapped,
       ),
     );
   }

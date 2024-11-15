@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -9,6 +10,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   TextEditingController _searchController = TextEditingController();
   String? _username;
+  bool hasNewNotification = true; // Ini bisa diubah sesuai status notifikasi
 
   final List<Map<String, String>> _infoList = [
     {
@@ -54,7 +56,6 @@ class _HomeScreenState extends State<HomeScreen> {
       'image': 'assets/kualitas.png',
     },
   ];
-
   List<Map<String, String>> _filteredInfoList = [];
 
   @override
@@ -78,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.didChangeDependencies();
     final args = ModalRoute.of(context)!.settings.arguments as Map?;
     setState(() {
-      _username = args?['name'] ?? 'User';
+      _username = args?['name'] ?? 'Hydrofans';
     });
   }
 
@@ -104,6 +105,119 @@ class _HomeScreenState extends State<HomeScreen> {
         Navigator.pushReplacementNamed(context, '/profile', arguments: {'name': _username});
         break;
     }
+  }
+
+  // Fungsi untuk membuka halaman chat dengan admin
+  void _openChatWithAdmin() {
+    Navigator.pushNamed(context, '/chat');
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        color: const Color.fromARGB(255, 77, 137, 185),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'Hi, $_username',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Cari informasi...',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: BorderSide(
+                            color: Colors.blue,
+                            width: 2.0,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: BorderSide(
+                            color: Colors.blue,
+                            width: 2.0,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: BorderSide(
+                            color: Colors.blueAccent,
+                            width: 2.0,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Stack(
+                      children: [
+                        Icon(Icons.notifications),
+                        if (hasNewNotification)
+                          Positioned(
+                            right: 0,
+                            child: Icon(
+                              Icons.circle,
+                              color: const Color.fromARGB(255, 0, 100, 231),
+                              size: 8,
+                            ),
+                          ),
+                      ],
+                    ),
+                    onPressed: _openChatWithAdmin,
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _filteredInfoList.length,
+                itemBuilder: (context, index) {
+                  return _buildInfoBox(
+                    title: _filteredInfoList[index]['title']!,
+                    content: _filteredInfoList[index]['content']!,
+                    image: _filteredInfoList[index]['image']!,
+                    fullContent: _filteredInfoList[index]['fullContent']!,
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: const Color.fromARGB(255, 123, 159, 221),
+        currentIndex: _currentIndex,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: const Color.fromARGB(255, 59, 117, 211),
+        onTap: _onTabTapped,
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Order'),
+          BottomNavigationBarItem(icon: Icon(Icons.payment), label: 'Payment'),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Order History'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+      ),
+    );
   }
 
   Widget _buildInfoBox({
@@ -153,146 +267,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _getTrimmedContent(String content) {
-    if (content.length > 100) {
-      return content.substring(0, 100) + '...';
-    } else {
-      return content;
-    }
+    return content.length > 100 ? content.substring(0, 100) + '...' : content;
   }
-  
+
   void _showFullContent(String fullContent) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => InfoDetailScreen(fullContent: fullContent),
       ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blue[700],
-        title: Text('Home'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search, color: Colors.white),
-            onPressed: () {
-              showSearch(
-                context: context,
-                delegate: InfoSearchDelegate(infoList: _infoList),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Container(
-        color: Colors.blue[100],
-        child: ListView.builder(
-          itemCount: _filteredInfoList.length,
-          itemBuilder: (context, index) {
-            return _buildInfoBox(
-              title: _filteredInfoList[index]['title']!,
-              content: _filteredInfoList[index]['content']!,
-              image: _filteredInfoList[index]['image']!,
-              fullContent: _filteredInfoList[index]['fullContent']!,
-            );
-          },
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: const Color.fromARGB(255, 123, 159, 221),
-        currentIndex: _currentIndex,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        onTap: _onTabTapped,
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Order'),
-          BottomNavigationBarItem(icon: Icon(Icons.payment), label: 'Payment'),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Order History'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-      ),
-    );
-  }
-}
-
-class InfoSearchDelegate extends SearchDelegate {
-  final List<Map<String, String>> infoList;
-
-  InfoSearchDelegate({required this.infoList});
-
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      IconButton(
-        icon: Icon(Icons.clear),
-        onPressed: () {
-          query = '';
-        },
-      ),
-    ];
-  }
-
-  @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: Icon(Icons.arrow_back),
-      onPressed: () {
-        close(context, null);
-      },
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    final results = infoList.where((info) =>
-        info['title']!.toLowerCase().contains(query.toLowerCase()) ||
-        info['content']!.toLowerCase().contains(query.toLowerCase())).toList();
-
-    return ListView.builder(
-      itemCount: results.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          title: Text(results[index]['title']!),
-          subtitle: Text(results[index]['content']!),
-          onTap: () {
-            Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => InfoDetailScreen(fullContent: results[index]['fullContent']!),
-            ));
-          },
-        );
-      },
-    );
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    final suggestions = infoList.where((info) =>
-        info['title']!.toLowerCase().contains(query.toLowerCase()) ||
-        info['content']!.toLowerCase().contains(query.toLowerCase())).toList();
-
-    return ListView.builder(
-      itemCount: suggestions.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          title: Text(suggestions[index]['title']!),
-          subtitle: Text(suggestions[index]['content']!),
-          onTap: () {
-            Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => InfoDetailScreen(fullContent: suggestions[index]['fullContent']!),
-            ));
-          },
-        );
-      },
     );
   }
 }
@@ -320,3 +303,4 @@ class InfoDetailScreen extends StatelessWidget {
     );
   }
 }
+

@@ -44,73 +44,92 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   void _processPayment() {
-  // Cek nilai quantity dari widget dan pastikan bisa dikonversi ke int
-  print('Quantity yang diterima: ${widget.quantity}');
+    // Cek nilai quantity dari widget dan pastikan bisa dikonversi ke int
+    print('Quantity yang diterima: ${widget.quantity}');
 
-  // Menghapus bagian " Liter" jika ada
-  String cleanedQuantity = widget.quantity.replaceAll(' Liter', '');
-  int quantity = int.tryParse(cleanedQuantity) ?? 0;
+    // Menghapus bagian " Liter" jika ada
+    String cleanedQuantity = widget.quantity.replaceAll(' Liter', '');
+    int quantity = int.tryParse(cleanedQuantity) ?? 0;
 
-  // Jika quantity tetap 0 setelah parsing, itu berarti data yang diteruskan salah
-  if (quantity == 0 && cleanedQuantity.isNotEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Jumlah air tidak valid! Harap periksa input.')),
-    );
-    return;
-  }
+    // Jika quantity tetap 0 setelah parsing, itu berarti data yang diteruskan salah
+    if (quantity == 0 && cleanedQuantity.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Jumlah air tidak valid! Harap periksa input.')),
+      );
+      return;
+    }
 
-  // Melanjutkan ke proses pembayaran
-  if (selectedPaymentMethod == 'Transfer Bank') {
-    String accountNumber = accountNumberController.text;
+    // Melanjutkan ke proses pembayaran
+    if (selectedPaymentMethod == 'Transfer Bank') {
+      String accountNumber = accountNumberController.text;
 
-    if (selectedBank != 'Pilih Bank' && accountNumber.isNotEmpty) {
+      if (selectedBank != 'Pilih Bank' && accountNumber.isNotEmpty) {
+        setState(() {
+          _isPaymentSuccessful = true;
+          _invoiceDetails = "Invoice\n"
+                            "----------------------------------\n"
+                            "Metode Pembayaran: Transfer Bank\n"
+                            "Bank: $selectedBank\n"
+                            "Nomor Rekening: $accountNumber\n"
+                            "Nama: ${widget.name}\n"
+                            "Alamat: ${widget.address}\n"
+                            "No Telepon: ${widget.phone}\n"
+                            "Jumlah Air: $quantity L\n"
+                            "Tanggal Pemesanan: ${formatDate(widget.orderDate)}\n"
+                            "Status: Pembayaran Berhasil\n"
+                            "----------------------------------";
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Pembayaran berhasil dilakukan!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Harap lengkapi semua data!')),
+        );
+      }
+    } else if (selectedPaymentMethod == 'Cash on Delivery') {
       setState(() {
         _isPaymentSuccessful = true;
         _invoiceDetails = "Invoice\n"
                           "----------------------------------\n"
-                          "Metode Pembayaran: Transfer Bank\n"
-                          "Bank: $selectedBank\n"
-                          "Nomor Rekening: $accountNumber\n"
+                          "Metode Pembayaran: Cash on Delivery\n"
                           "Nama: ${widget.name}\n"
                           "Alamat: ${widget.address}\n"
                           "No Telepon: ${widget.phone}\n"
                           "Jumlah Air: $quantity L\n"
                           "Tanggal Pemesanan: ${formatDate(widget.orderDate)}\n"
-                          "Status: Pembayaran Berhasil\n"
+                          "Status: Pembayaran akan dilakukan di lokasi pengiriman.\n"
+                          "Silakan siapkan uang tunai sejumlah total pembelian.\n"
                           "----------------------------------";
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Pembayaran berhasil dilakukan!')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Harap lengkapi semua data!')),
+        SnackBar(content: Text('Pembayaran COD berhasil disetujui!')),
       );
     }
-  } else if (selectedPaymentMethod == 'Cash on Delivery') {
-    setState(() {
-      _isPaymentSuccessful = true;
-      _invoiceDetails = "Invoice\n"
-                        "----------------------------------\n"
-                        "Metode Pembayaran: Cash on Delivery\n"
-                        "Nama: ${widget.name}\n"
-                        "Alamat: ${widget.address}\n"
-                        "No Telepon: ${widget.phone}\n"
-                        "Jumlah Air: $quantity L\n"
-                        "Tanggal Pemesanan: ${formatDate(widget.orderDate)}\n"
-                        "Status: Pembayaran akan dilakukan di lokasi pengiriman.\n"
-                        "Silakan siapkan uang tunai sejumlah total pembelian.\n"
-                        "----------------------------------";
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Pembayaran COD berhasil disetujui!')),
-    );
   }
-}
-
 
   void _backToHome() {
     Navigator.pushReplacementNamed(context, '/home');
+  }
+
+  void _onNavigationTapped(int index) {
+    switch (index) {
+      case 0:
+        Navigator.pushNamed(context, '/home');
+        break;
+      case 1:
+        Navigator.pushNamed(context, '/order');
+        break;
+      case 2:
+        // Halaman Payment, tidak perlu melakukan apa-apa
+        break;
+      case 3:
+        Navigator.pushNamed(context, '/order-history');
+        break;
+      case 4:
+        Navigator.pushNamed(context, '/profile');
+        break;
+    }
   }
 
   @override
@@ -122,6 +141,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
       ),
       body: Center(
         child: _isPaymentSuccessful ? _buildInvoice() : _buildPaymentOptions(),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Order'),
+          BottomNavigationBarItem(icon: Icon(Icons.payment), label: 'Payment'),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Order History'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+        currentIndex: 2, // Menunjukkan bahwa Payment adalah tab yang aktif
+        selectedItemColor: Colors.blue[800],
+        unselectedItemColor: Colors.blue[300],
+        onTap: _onNavigationTapped,
       ),
     );
   }

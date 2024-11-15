@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
-  final List<Map<String, dynamic>> orderHistory; // Ubah di sini
+  final List<Map<String, dynamic>> orderHistory;
 
   OrderHistoryScreen({required this.orderHistory});
 
@@ -10,7 +10,7 @@ class OrderHistoryScreen extends StatefulWidget {
 }
 
 class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
-  late List<Map<String, dynamic>> updatedOrderHistory; // Ubah di sini
+  late List<Map<String, dynamic>> updatedOrderHistory;
 
   @override
   void initState() {
@@ -51,7 +51,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                       children: [
                         Text('Alamat: ${order['address'] ?? ''}'),
                         Text('Jumlah: ${order['quantity'] ?? ''}'),
-                        Text('Harga: ${order['price'] ?? ''}'), // Tampilkan harga
+                        Text('Harga: ${order['price'] ?? ''}'),
                         Text('Status: ${order['status'] ?? 'Belum Dikirim'}'),
                       ],
                     ),
@@ -69,7 +69,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                       ],
                       onChanged: (value) {
                         setState(() {
-                          updatedOrderHistory[index]['status'] = value!; // Ubah status di sini
+                          updatedOrderHistory[index]['status'] = value!;
                         });
                       },
                     ),
@@ -77,13 +77,53 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 );
               },
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushReplacementNamed(context, '/home');
+      bottomNavigationBar: BottomNavigationBar(
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Order',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.payment),
+            label: 'Payment',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history),
+            label: 'Order History',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+        currentIndex: 3, // Indeks untuk menunjukkan item yang dipilih
+        selectedItemColor: Colors.blue[800], // Warna biru tua saat dipilih
+        unselectedItemColor: Colors.blue[300], // Warna biru muda saat tidak dipilih
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.pushNamed(context, '/home');
+              break;
+            case 1:
+              Navigator.pushNamed(context, '/order'); // Ganti dengan rute yang sesuai
+              break;
+            case 2:
+              Navigator.pushNamed(context, '/payment'); // Ganti dengan rute yang sesuai
+              break;
+            case 3:
+              // Halaman ini, tidak perlu melakukan apa-apa
+              break;
+            case 4:
+              Navigator.pushNamed(context, '/profile'); // Ganti dengan rute yang sesuai
+              break;
+          }
         },
-        child: Icon(Icons.home),
-        backgroundColor: Colors.blue,
       ),
+      // Menghapus FloatingActionButton
     );
   }
 }

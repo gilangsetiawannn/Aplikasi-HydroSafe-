@@ -13,15 +13,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   bool _isVerificationVisible = false;
 
   void _requestPasswordReset() {
-    // Logika untuk meminta reset password (misalnya, kirim email)
     setState(() {
       _isVerificationVisible = true; // Tampilkan bagian verifikasi
     });
   }
 
   void _updatePassword() {
-    // Logika untuk memperbarui password (misalnya, kirim request ke server)
-    // Setelah berhasil, navigasi kembali ke halaman login
+    // Logika untuk memperbarui password
     Navigator.pushReplacementNamed(context, '/login');
   }
 
@@ -37,11 +35,26 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Text(
+              'Reset Password',
+              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.blue),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Masukkan email Anda untuk mengirimkan kode verifikasi.',
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 32),
             TextField(
               controller: emailController,
               decoration: InputDecoration(
-                labelText: 'Email Baru',
+                labelText: 'Email',
                 prefixIcon: Icon(Icons.email, color: Colors.blue),
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.blue[50],
               ),
             ),
             SizedBox(height: 16),
@@ -52,27 +65,28 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 decoration: InputDecoration(
                   labelText: 'Password Baru',
                   prefixIcon: Icon(Icons.lock, color: Colors.blue),
+                  border: OutlineInputBorder(),
+                  filled: true,
+                  fillColor: Colors.blue[50],
                 ),
               ),
               SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: verificationCodeController,
-                      decoration: InputDecoration(
-                        labelText: 'Kode Verifikasi (5 digit)',
-                      ),
-                      keyboardType: TextInputType.number,
-                      maxLength: 5,
-                    ),
-                  ),
-                ],
+              TextField(
+                controller: verificationCodeController,
+                decoration: InputDecoration(
+                  labelText: 'Kode Verifikasi (5 digit)',
+                  prefixIcon: Icon(Icons.security, color: Colors.blue),
+                  border: OutlineInputBorder(),
+                  filled: true,
+                  fillColor: Colors.blue[50],
+                ),
+                keyboardType: TextInputType.number,
+                maxLength: 5,
               ),
               SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _updatePassword,
-                child: Text('Update Password'),
+                child: Text('Perbarui Password'),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
               ),
             ],

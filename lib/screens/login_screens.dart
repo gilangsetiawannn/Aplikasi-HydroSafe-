@@ -24,6 +24,34 @@ class _LoginScreenState extends State<LoginScreen> {
     return hasUpperCase && hasLowerCase && hasSpecialCharacter;
   }
 
+  void _login() {
+    final String email = _emailController.text;
+    final String password = _passwordController.text;
+
+    // Simulasi login
+    if (email.isEmpty || password.isEmpty) {
+      setState(() {
+        _errorMessage = 'Email dan Password tidak boleh kosong';
+      });
+      return; // Keluar dari fungsi jika ada error
+    }
+
+    // Validasi password
+    if (_isPasswordValid(password)) {
+      final name = email.split('@').first; // Mengambil nama dari email
+
+      Navigator.pushReplacementNamed(
+        context,
+        '/home',
+        arguments: {'name': name}, // Pass name to HomeScreen
+      );
+    } else {
+      setState(() {
+        _errorMessage = 'Gunakan password sebanyak 8 digit dan variasikan simbol, huruf besar, dan huruf kecil';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,13 +67,13 @@ class _LoginScreenState extends State<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Selamat Datang',
+              'Halo Hydrofans,',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               textAlign: TextAlign.left,
             ),
             SizedBox(height: 8),
             Text(
-              'Halo, selamat datang di aplikasi HydroSafe. Untuk login, segera lengkapi data di bawah ini.',
+              'selamat datang di aplikasi HydroSafe. Untuk login, segera lengkapi data di bawah ini.',
               style: TextStyle(fontSize: 16),
               textAlign: TextAlign.left,
             ),
@@ -56,6 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 labelText: 'Email',
                 prefixIcon: Icon(Icons.email, color: Colors.blue),
                 border: OutlineInputBorder(),
+                errorText: _errorMessage, // Menampilkan pesan kesalahan jika ada
               ),
             ),
             SizedBox(height: 16),
@@ -77,47 +106,33 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
                 border: OutlineInputBorder(),
+                errorText: _errorMessage, // Menampilkan pesan kesalahan jika ada
               ),
             ),
-            if (_errorMessage != null) ...[
-              SizedBox(height: 8),
-              Text(
-                _errorMessage!,
-                style: TextStyle(color: Colors.red, fontSize: 12),
+            SizedBox(height: 8), // Mengurangi jarak di sini
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/forgot-password');
+                },
+                child: Text('Lupa Password?'),
               ),
-            ],
-            SizedBox(height: 24),
+            ),
+            SizedBox(height: 16), // Mengurangi jarak di sini
             Center(
               child: Column(
                 children: [
                   ElevatedButton(
-                    onPressed: () {
-                      // Extract name from email before '@'
-                      final email = _emailController.text;
-                      final password = _passwordController.text;
-
-                      // Validate password
-                      if (_isPasswordValid(password)) {
-                        final name = email.split('@').first;
-
-                        Navigator.pushReplacementNamed(
-                          context,
-                          '/home',
-                          arguments: {'name': name}, // Pass name to HomeScreen
-                        );
-                      } else {
-                        setState(() {
-                          _errorMessage = 'Gunakan password sebanyak 8 digit dan variasikan simbol, huruf besar, dan huruf kecil';
-                        });
-                      }
-                    },
+                    onPressed: _login, // Memanggil fungsi login saat tombol ditekan
                     child: Text('Login'),
                   ),
+                  SizedBox(height: 8), // Jarak antara tombol login dan pendaftaran
                   TextButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, '/forgot-password');
+                      Navigator.pushNamed(context, '/register'); // Navigasi ke halaman Register
                     },
-                    child: Text('Lupa Password?'),
+                    child: Text('Belum punya akun? Daftar di sini'),
                   ),
                 ],
               ),
