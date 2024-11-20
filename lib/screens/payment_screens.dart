@@ -4,8 +4,8 @@ class PaymentScreen extends StatefulWidget {
   final String name;
   final String address;
   final String phone;
-  final String quantity; 
-  final DateTime orderDate; 
+  final String quantity;
+  final DateTime orderDate;
 
   // Constructor to receive order data
   PaymentScreen({
@@ -22,9 +22,11 @@ class PaymentScreen extends StatefulWidget {
 
 class _PaymentScreenState extends State<PaymentScreen> {
   final TextEditingController accountNumberController = TextEditingController();
+  final TextEditingController priceController = TextEditingController();
 
   String selectedBank = 'Pilih Bank'; // Default selection for bank
   String selectedPaymentMethod = 'Transfer Bank'; // Default payment method
+  bool showQrCode = false; // To track QR Code display
 
   final List<String> banks = [
     'Pilih Bank',
@@ -44,14 +46,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   void _processPayment() {
-    // Cek nilai quantity dari widget dan pastikan bisa dikonversi ke int
     print('Quantity yang diterima: ${widget.quantity}');
-
-    // Menghapus bagian " Liter" jika ada
     String cleanedQuantity = widget.quantity.replaceAll(' Liter', '');
     int quantity = int.tryParse(cleanedQuantity) ?? 0;
 
-    // Jika quantity tetap 0 setelah parsing, itu berarti data yang diteruskan salah
     if (quantity == 0 && cleanedQuantity.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Jumlah air tidak valid! Harap periksa input.')),
@@ -59,25 +57,26 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return;
     }
 
-    // Melanjutkan ke proses pembayaran
     if (selectedPaymentMethod == 'Transfer Bank') {
       String accountNumber = accountNumberController.text;
+      String price = priceController.text;
 
-      if (selectedBank != 'Pilih Bank' && accountNumber.isNotEmpty) {
+      if (selectedBank != 'Pilih Bank' && accountNumber.isNotEmpty && price.isNotEmpty) {
         setState(() {
           _isPaymentSuccessful = true;
           _invoiceDetails = "Invoice\n"
-                            "----------------------------------\n"
-                            "Metode Pembayaran: Transfer Bank\n"
-                            "Bank: $selectedBank\n"
-                            "Nomor Rekening: $accountNumber\n"
-                            "Nama: ${widget.name}\n"
-                            "Alamat: ${widget.address}\n"
-                            "No Telepon: ${widget.phone}\n"
-                            "Jumlah Air: $quantity L\n"
-                            "Tanggal Pemesanan: ${formatDate(widget.orderDate)}\n"
-                            "Status: Pembayaran Berhasil\n"
-                            "----------------------------------";
+              "----------------------------------\n"
+              "Metode Pembayaran: Transfer Bank\n"
+              "Bank: $selectedBank\n"
+              "Nomor Rekening: $accountNumber\n"
+              "Nama: ${widget.name}\n"
+              "Alamat: ${widget.address}\n"
+              "No Telepon: ${widget.phone}\n"
+              "Jumlah Air: $quantity L\n"
+              "Harga: Rp $price\n"
+              "Tanggal Pemesanan: ${formatDate(widget.orderDate)}\n"
+              "Status: Pembayaran Berhasil\n"
+              "----------------------------------";
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Pembayaran berhasil dilakukan!')),
@@ -91,21 +90,27 @@ class _PaymentScreenState extends State<PaymentScreen> {
       setState(() {
         _isPaymentSuccessful = true;
         _invoiceDetails = "Invoice\n"
-                          "----------------------------------\n"
-                          "Metode Pembayaran: Cash on Delivery\n"
-                          "Nama: ${widget.name}\n"
-                          "Alamat: ${widget.address}\n"
-                          "No Telepon: ${widget.phone}\n"
-                          "Jumlah Air: $quantity L\n"
-                          "Tanggal Pemesanan: ${formatDate(widget.orderDate)}\n"
-                          "Status: Pembayaran akan dilakukan di lokasi pengiriman.\n"
-                          "Silakan siapkan uang tunai sejumlah total pembelian.\n"
-                          "----------------------------------";
+            "----------------------------------\n"
+            "Metode Pembayaran: Cash on Delivery\n"
+            "Nama: ${widget.name}\n"
+            "Alamat: ${widget.address}\n"
+            "No Telepon: ${widget.phone}\n"
+            "Jumlah Air: $quantity L\n"
+            "Tanggal Pemesanan: ${formatDate(widget.orderDate)}\n"
+            "Status: Pembayaran akan dilakukan di lokasi pengiriman.\n"
+            "Silakan siapkan uang tunai sejumlah total pembelian.\n"
+            "----------------------------------";
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Pembayaran COD berhasil disetujui!')),
       );
     }
+  }
+
+  void _generateQRCode() {
+    setState(() {
+      showQrCode = true; // Show the QR Code when the button is pressed
+    });
   }
 
   void _backToHome() {
@@ -121,7 +126,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
         Navigator.pushNamed(context, '/order');
         break;
       case 2:
-        // Halaman Payment, tidak perlu melakukan apa-apa
         break;
       case 3:
         Navigator.pushNamed(context, '/order-history');
@@ -139,8 +143,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
         title: Text('Payment'),
         backgroundColor: Colors.blue,
       ),
-      body: Center(
-        child: _isPaymentSuccessful ? _buildInvoice() : _buildPaymentOptions(),
+      body: SingleChildScrollView(
+        child: Center(
+          child: showQrCode
+              ? _buildQrCode()
+              : _isPaymentSuccessful
+                  ? _buildInvoice()
+                  : _buildPaymentOptions(),
+        ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: [
@@ -150,7 +160,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Order History'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
-        currentIndex: 2, // Menunjukkan bahwa Payment adalah tab yang aktif
+        currentIndex: 2,
         selectedItemColor: Colors.blue[800],
         unselectedItemColor: Colors.blue[300],
         onTap: _onNavigationTapped,
@@ -182,7 +192,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 onPressed: _processPayment,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
-                  minimumSize: Size(120, 40), // Set a minimum size for consistency
+                  minimumSize: Size(120, 40),
                 ),
                 child: Text('Bayar'),
               ),
@@ -190,7 +200,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 onPressed: _backToHome,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
-                  minimumSize: Size(120, 40), // Set a minimum size for consistency
+                  minimumSize: Size(120, 40),
                 ),
                 child: Text('Home'),
               ),
@@ -245,12 +255,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ),
         SizedBox(height: 16),
         TextField(
-          controller: accountNumberController,
+          controller: accountNumberController..text = '66626567',
+          readOnly: true,
           decoration: InputDecoration(
-            labelText: 'Masukkan Nomor Rekening',
+            labelText: 'Nomor Rekening',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        SizedBox(height: 16),
+        TextField(
+          controller: priceController,
+          decoration: InputDecoration(
+            labelText: 'Masukkan Harga (Rp)',
             border: OutlineInputBorder(),
           ),
           keyboardType: TextInputType.number,
+        ),
+        SizedBox(height: 16),
+        ElevatedButton.icon(
+          onPressed: _generateQRCode,
+          icon: Icon(Icons.qr_code),
+          label: Text('Bayar dengan QR Code'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue,
+          ),
         ),
       ],
     );
@@ -267,40 +295,47 @@ class _PaymentScreenState extends State<PaymentScreen> {
         SizedBox(height: 16),
         Icon(
           Icons.delivery_dining,
-          size: 50,
-          color: Colors.blue,
+          size: 64,
+          color: Colors.green,
         ),
       ],
     );
   }
 
   Widget _buildInvoice() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Pembayaran Berhasil!',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 16),
-          Text(
-            _invoiceDetails ?? '',
-            style: TextStyle(fontSize: 14), // Make text smaller
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: _backToHome,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-            ),
-            child: Text('Kembali ke Home'),
-          ),
-        ],
-      ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          _invoiceDetails ?? '',
+          style: TextStyle(fontSize: 14),
+          textAlign: TextAlign.center,
+        ),
+        SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: _backToHome,
+          child: Text('Kembali ke Home'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQrCode() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset('assets/qr_code.png', height: 300), // Replace with your QR code image
+        SizedBox(height: 20),
+        Text(
+          'Silakan scan QR Code untuk pembayaran',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: _backToHome,
+          child: Text('Selesai'),
+        ),
+      ],
     );
   }
 }
